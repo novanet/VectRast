@@ -1,1 +1,0 @@
-vectrast.exe -loadlev inlev.lev -rotate 5 -scale -47 47 -savelev outlev.lev >> log.txt
