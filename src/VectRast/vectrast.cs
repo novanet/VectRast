@@ -453,7 +453,7 @@ namespace vectrast
             getMinMax();
         }
 
-        protected void loadAsBmp(String fileName, out SKBitmap bmp, out byte[,] pixelOn, double zoom, byte merging, int numFlowers)
+        protected void loadAsBmp(String fileName, out SKBitmap bmp, out byte[,] pixelOn, double zoom, byte merging, int numFlowers, (int x, int y)? playerXY)
         {
             bmp = SKBitmap.FromImage(SKImage.FromEncodedData(SKData.Create(fileName)));
             pixelOn = new byte[bmp.Width + 2, bmp.Height + 2];
@@ -479,7 +479,15 @@ namespace vectrast
                     bmp.Width / 2 + (2 + 6 * Math.Cos(i * Math.PI / numFlowers)) / zoom,
                     bmp.Height / 2 - 6 * Math.Sin(i * Math.PI / numFlowers) / zoom,
                     1, 0, 0));
-            objects.Add(new ElmaObject(bmp.Width / 2, bmp.Height / 2, 4, 0, 0));
+            if (!playerXY.HasValue)
+            {
+                objects.Add(new ElmaObject(bmp.Width / 2, bmp.Height / 2, 4, 0, 0));
+            }
+            else
+            {
+                objects.Add(new ElmaObject(playerXY.Value.x, playerXY.Value.y, 4, 0, 0));
+            }
+
         }
 
         // protected void saveAsBmp(String fileName)
@@ -606,6 +614,7 @@ namespace vectrast
             String saveLevFileName = null;
             String loadBmpFileName = null;
             String saveBmpFileName = null;
+            (int x, int y)? playerXY = null;
             int numFlowers = 1;
             Matrix2D transformMatrix = Matrix2D.identityM();
             #endregion
@@ -672,6 +681,11 @@ namespace vectrast
                             // print warnings
                             printWarningsOn = Boolean.Parse(args[arg_num++]);
                             break;
+                        case "-playerXY":
+                            var x = int.Parse(args[arg_num++]);
+                            var y = int.Parse(args[arg_num++]);
+                            playerXY = (x, y);
+                            break;
                         default:
                             throw new Exception("unknown parameter '" + arg_now + "'");
                     }
@@ -702,7 +716,7 @@ namespace vectrast
                 try
                 {
                     Console.Write("\nloading in bitmap {0}", loadBmpFileName);
-                    vr.loadAsBmp(loadBmpFileName, out bmp, out pixelOn, Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]), load_type == IOType.LevelBitmap ? (byte)0 : (byte)1, numFlowers);
+                    vr.loadAsBmp(loadBmpFileName, out bmp, out pixelOn, Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]), load_type == IOType.LevelBitmap ? (byte)0 : (byte)1, numFlowers, playerXY);
                 }
                 catch (Exception e)
                 {

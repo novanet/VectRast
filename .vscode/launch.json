@@ -20,6 +20,9 @@
         "1",
         "-savelev",
         "outlev.lev",
+        "-playerXY",
+        "170",
+        "300",
         ">>",
         "log.txt"
       ],
