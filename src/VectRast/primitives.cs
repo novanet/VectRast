@@ -1,6 +1,6 @@
 using System;
 
-namespace vectrast
+namespace VectRast
 {
     struct IntVector2 : IComparable
     {
@@ -91,23 +91,7 @@ namespace vectrast
         }
     }
 
-    enum ObjectTypes { Flower = 1, Food = 2, Killer = 3, Start = 4 }
-    struct ElmaObject
-    {
-        public double x;
-        public double y;
-        public ObjectTypes type;
-        public uint typeOfFood;
-        public uint animationNumber;
-        public ElmaObject(double x, double y, ObjectTypes type, uint typeOfFood, uint animationNumber)
-        {
-            this.x = x;
-            this.y = y;
-            this.type = type;
-            this.typeOfFood = typeOfFood;
-            this.animationNumber = animationNumber;
-        }
-    }
+
     class Matrix2D
     {
         public double[,] elements;

@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using SkiaSharp;
+using VectRast.Models.Elma;
 
-namespace vectrast
+namespace VectRast
 {
     class VectRast
     {
@@ -409,8 +410,8 @@ namespace vectrast
                 levWriter.Write(elmaObject.x);
                 levWriter.Write(elmaObject.y);
                 levWriter.Write((Int32)elmaObject.type);
-                levWriter.Write((Int32)elmaObject.typeOfFood);
-                levWriter.Write((Int32)elmaObject.animationNumber);
+                levWriter.Write((Int32)elmaObject.appleGravity);
+                levWriter.Write((Int32)elmaObject.appleAnimationNumber);
             }
             levWriter.Write((double)0.2345672);
             levWriter.Write(endOfData);
@@ -445,7 +446,7 @@ namespace vectrast
             objects = new ArrayList(numObjects);
             for (int j = 0; j < numObjects; j++)
             {
-                ElmaObject elmaObject = new ElmaObject(levReader.ReadDouble(), levReader.ReadDouble(), (ObjectTypes)levReader.ReadUInt32(), levReader.ReadUInt32(), levReader.ReadUInt32());
+                ElmaObject elmaObject = new ElmaObject(levReader.ReadDouble(), levReader.ReadDouble(), (ElmaObjectTypes)levReader.ReadUInt32(), levReader.ReadUInt32(), levReader.ReadUInt32());
                 objects.Add(elmaObject);
             }
             levReader.Close();
@@ -478,33 +479,31 @@ namespace vectrast
             if (!flowerXY.HasValue)
             {
                 for (int i = 0; i < numFlowers; i++)
-                    objects.Add(new ElmaObject(
+                    objects.Add(new Flower(
                         bmp.Width / 2 + (2 + 6 * Math.Cos(i * Math.PI / numFlowers)) / zoom,
-                        bmp.Height / 2 - 6 * Math.Sin(i * Math.PI / numFlowers) / zoom,
-                        ObjectTypes.Flower, 0, 0));
+                        bmp.Height / 2 - 6 * Math.Sin(i * Math.PI / numFlowers) / zoom));
             }
             else
             {
-                objects.Add(new ElmaObject(
+                objects.Add(new Flower(
                         flowerXY.Value.x,
-                        flowerXY.Value.y,
-                        ObjectTypes.Flower, 0, 0));
+                        flowerXY.Value.y));
             }
 
             if (!playerXY.HasValue)
             {
-                objects.Add(new ElmaObject(bmp.Width / 2, bmp.Height / 2, ObjectTypes.Start, 0, 0));
+                objects.Add(new Player(bmp.Width / 2, bmp.Height / 2));
             }
             else
             {
-                objects.Add(new ElmaObject(playerXY.Value.x, playerXY.Value.y, ObjectTypes.Start, 0, 0));
+                objects.Add(new Player(playerXY.Value.x, playerXY.Value.y));
             }
 
             if (applesXY != null)
             {
                 foreach (var appleXY in applesXY)
                 {
-                    objects.Add(new ElmaObject(appleXY.x, appleXY.y, ObjectTypes.Food, 0, 0));
+                    objects.Add(new Apple(appleXY.x, appleXY.y, 0, 0));
                 }
             }
         }
