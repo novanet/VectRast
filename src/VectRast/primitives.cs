@@ -96,10 +96,10 @@ namespace vectrast
     {
         public double x;
         public double y;
-        public uint type;
+        public ObjectTypes type;
         public uint typeOfFood;
         public uint animationNumber;
-        public ElmaObject(double x, double y, uint type, uint typeOfFood, uint animationNumber)
+        public ElmaObject(double x, double y, ObjectTypes type, uint typeOfFood, uint animationNumber)
         {
             this.x = x;
             this.y = y;

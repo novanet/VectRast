@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using SkiaSharp;
 
@@ -318,7 +319,7 @@ namespace vectrast
             while (objectNow.MoveNext())
             {
                 ElmaObject elmaObject = (ElmaObject)objectNow.Current;
-                OSUM += elmaObject.x + elmaObject.y + elmaObject.type;
+                OSUM += elmaObject.x + elmaObject.y + (uint)elmaObject.type;
             }
             double PICSUM = 0;
             double SUM = (PSUM + OSUM + PICSUM) * 3247.764325643;
@@ -444,7 +445,7 @@ namespace vectrast
             objects = new ArrayList(numObjects);
             for (int j = 0; j < numObjects; j++)
             {
-                ElmaObject elmaObject = new ElmaObject(levReader.ReadDouble(), levReader.ReadDouble(), levReader.ReadUInt32(), levReader.ReadUInt32(), levReader.ReadUInt32());
+                ElmaObject elmaObject = new ElmaObject(levReader.ReadDouble(), levReader.ReadDouble(), (ObjectTypes)levReader.ReadUInt32(), levReader.ReadUInt32(), levReader.ReadUInt32());
                 objects.Add(elmaObject);
             }
             levReader.Close();
@@ -453,7 +454,7 @@ namespace vectrast
             getMinMax();
         }
 
-        protected void loadAsBmp(String fileName, out SKBitmap bmp, out byte[,] pixelOn, double zoom, byte merging, int numFlowers, (int x, int y)? playerXY)
+        protected void loadAsBmp(String fileName, out SKBitmap bmp, out byte[,] pixelOn, double zoom, byte merging, int numFlowers, (int x, int y)? playerXY, (int x, int y)? flowerXY, (int x, int y)[] applesXY)
         {
             bmp = SKBitmap.FromImage(SKImage.FromEncodedData(SKData.Create(fileName)));
             pixelOn = new byte[bmp.Width + 2, bmp.Height + 2];
@@ -474,20 +475,38 @@ namespace vectrast
                     }
                 }
             objects = new ArrayList();
-            for (int i = 0; i < numFlowers; i++)
-                objects.Add(new ElmaObject(
-                    bmp.Width / 2 + (2 + 6 * Math.Cos(i * Math.PI / numFlowers)) / zoom,
-                    bmp.Height / 2 - 6 * Math.Sin(i * Math.PI / numFlowers) / zoom,
-                    1, 0, 0));
-            if (!playerXY.HasValue)
+            if (!flowerXY.HasValue)
             {
-                objects.Add(new ElmaObject(bmp.Width / 2, bmp.Height / 2, 4, 0, 0));
+                for (int i = 0; i < numFlowers; i++)
+                    objects.Add(new ElmaObject(
+                        bmp.Width / 2 + (2 + 6 * Math.Cos(i * Math.PI / numFlowers)) / zoom,
+                        bmp.Height / 2 - 6 * Math.Sin(i * Math.PI / numFlowers) / zoom,
+                        ObjectTypes.Flower, 0, 0));
             }
             else
             {
-                objects.Add(new ElmaObject(playerXY.Value.x, playerXY.Value.y, 4, 0, 0));
+                objects.Add(new ElmaObject(
+                        flowerXY.Value.x,
+                        flowerXY.Value.y,
+                        ObjectTypes.Flower, 0, 0));
             }
 
+            if (!playerXY.HasValue)
+            {
+                objects.Add(new ElmaObject(bmp.Width / 2, bmp.Height / 2, ObjectTypes.Start, 0, 0));
+            }
+            else
+            {
+                objects.Add(new ElmaObject(playerXY.Value.x, playerXY.Value.y, ObjectTypes.Start, 0, 0));
+            }
+
+            if (applesXY != null)
+            {
+                foreach (var appleXY in applesXY)
+                {
+                    objects.Add(new ElmaObject(appleXY.x, appleXY.y, ObjectTypes.Food, 0, 0));
+                }
+            }
         }
 
         // protected void saveAsBmp(String fileName)
@@ -615,6 +634,8 @@ namespace vectrast
             String loadBmpFileName = null;
             String saveBmpFileName = null;
             (int x, int y)? playerXY = null;
+            (int x, int y)? flowerXY = null;
+            List<(int x, int y)> applesXY = new List<(int x, int y)>();
             int numFlowers = 1;
             Matrix2D transformMatrix = Matrix2D.identityM();
             #endregion
@@ -682,9 +703,19 @@ namespace vectrast
                             printWarningsOn = Boolean.Parse(args[arg_num++]);
                             break;
                         case "-playerXY":
-                            var x = int.Parse(args[arg_num++]);
-                            var y = int.Parse(args[arg_num++]);
-                            playerXY = (x, y);
+                            var playerX = int.Parse(args[arg_num++]);
+                            var playerY = int.Parse(args[arg_num++]);
+                            playerXY = (playerX, playerY);
+                            break;
+                        case "-flowerXY":
+                            var flowerX = int.Parse(args[arg_num++]);
+                            var flowerY = int.Parse(args[arg_num++]);
+                            flowerXY = (flowerX, flowerY);
+                            break;
+                        case "-appleXY":
+                            var appleX = int.Parse(args[arg_num++]);
+                            var appleY = int.Parse(args[arg_num++]);
+                            applesXY.Add((appleX, appleY));
                             break;
                         default:
                             throw new Exception("unknown parameter '" + arg_now + "'");
@@ -716,7 +747,7 @@ namespace vectrast
                 try
                 {
                     Console.Write("\nloading in bitmap {0}", loadBmpFileName);
-                    vr.loadAsBmp(loadBmpFileName, out bmp, out pixelOn, Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]), load_type == IOType.LevelBitmap ? (byte)0 : (byte)1, numFlowers, playerXY);
+                    vr.loadAsBmp(loadBmpFileName, out bmp, out pixelOn, Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]), load_type == IOType.LevelBitmap ? (byte)0 : (byte)1, numFlowers, playerXY, flowerXY, applesXY.ToArray());
                 }
                 catch (Exception e)
                 {
