@@ -773,7 +773,7 @@ namespace vectrast
                         Console.WriteLine("\nerror saving bitmap {0}: " + e.Message, saveBmpFileName);
                         return 5;
                     }
-                    break;
+                //break;
                 case IOType.Level:
                     try
                     {
