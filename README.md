@@ -63,7 +63,9 @@ Run the example batches from `examples folder`. Look at the files created. Tweak
 
 ## What do I need to run it?
 
-You need the [Microsoft .NET framework](http://msdn.microsoft.com/netframework/downloads/howtoget.asp) installed.
+.NET Core 2.0+
+
+https://github.com/dotnet/core
 
 ## So now I can convert any picture whatsoever into a level?
 
