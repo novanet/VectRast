@@ -186,7 +186,19 @@ namespace VectRast
                     return 6;
                 }
             #endregion
-            #region save
+            var result = Save(vr, save_type, saveBmpFileName, saveLevFileName);
+            if (result > 0)
+                return result;
+            
+            if (vr.someWarning)
+                Console.WriteLine("\ndone, but there were some warnings; set '-warnings true' to view them\n");
+            else
+                Console.WriteLine("\ndone\n");
+            return 0;
+        }
+
+        private static int Save(VectRast vr, IOType save_type, string saveBmpFileName, string saveLevFileName)
+        {
             switch (save_type)
             {
                 case IOType.None:
@@ -217,12 +229,8 @@ namespace VectRast
                     }
                     break;
             }
-            if (vr.someWarning)
-                Console.WriteLine("\ndone, but there were some warnings; set '-warnings true' to view them\n");
-            else
-                Console.WriteLine("\ndone\n");
+
             return 0;
-            #endregion
         }
     }
 }
