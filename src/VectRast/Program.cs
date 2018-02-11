@@ -8,7 +8,59 @@ namespace VectRast
     {
         public static int Main(string[] args)
         {
-            #region init defaults
+            (var resultCode,
+            var load_type,
+            var loadBmpFileName,
+            var loadLevFileName,
+            var save_type,
+            var saveBmpFileName,
+            var saveLevFileName,
+            var playerXY,
+            var flowerXY,
+            var applesXY,
+            var numFlowers,
+            var transformMatrix,
+            var printProgressOn,
+            var printWarningsOn) = 
+                ParseArguments(args);
+            if (resultCode > 0)
+                return resultCode;
+
+            (var loadResultCode, var vr) = LoadAndTransform(load_type, loadBmpFileName, loadLevFileName, transformMatrix, 
+                                                numFlowers, playerXY, flowerXY, applesXY, printProgressOn, printWarningsOn);
+            if (loadResultCode > 0)
+                return loadResultCode;
+
+            resultCode = Save(vr, save_type, saveBmpFileName, saveLevFileName);
+            if (resultCode > 0)
+                return resultCode;
+            
+            if (vr.someWarning)
+                Console.WriteLine("\ndone, but there were some warnings; set '-warnings true' to view them\n");
+            else
+                Console.WriteLine("\ndone\n");
+            return 0;
+        }
+
+        private static 
+        (
+            int resultCode,
+            IOType load_type,
+            string loadBmpFileName,
+            string loadLevFileName,
+            IOType save_type,
+            string saveBmpFileName,
+            string saveLevFileName,
+            (int x, int y)? playerXY,
+            (int x, int y)? flowerXY,
+            (int x, int y)[] applesXY,
+            int numFlowers,
+            Matrix2D transformMatrix,
+            bool printProgressOn,
+            bool printWarningsOn
+            )
+            ParseArguments(string[] args)
+        {
             const double ONEPIXEL = 1.0 / 47.0;
             bool printProgressOn = true;
             bool printWarningsOn = false;
@@ -23,8 +75,7 @@ namespace VectRast
             var applesXY = new List<(int x, int y)>();
             int numFlowers = 1;
             Matrix2D transformMatrix = Matrix2D.identityM();
-            #endregion
-            #region arguments parse
+
             int arg_num = 0;
             try
             {
@@ -110,34 +161,35 @@ namespace VectRast
             catch (IndexOutOfRangeException)
             {
                 Console.WriteLine("\nexpected value(s) after the switch");
-                return 7;
+                return (7, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false);
             }
             catch (Exception e)
             {
                 Console.WriteLine("\nerror parsing command line: " + e.Message);
-                return 8;
+                return (8, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false);
             }
             if (load_type == IOType.LevelBitmap && save_type == IOType.Bitmap)
             {
                 Console.WriteLine("savebmp not allowed after loadlevbmp");
-                return 3;
-            }
-            #endregion
+                return (3, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false);
+            }   
 
-            (var resultCode, var vr) = LoadAndTransform(load_type, loadBmpFileName, loadLevFileName, transformMatrix, 
-                                                numFlowers, playerXY, flowerXY, applesXY.ToArray(), printProgressOn, printWarningsOn);
-            if (resultCode > 0)
-                return resultCode;
-
-            resultCode = Save(vr, save_type, saveBmpFileName, saveLevFileName);
-            if (resultCode > 0)
-                return resultCode;
-            
-            if (vr.someWarning)
-                Console.WriteLine("\ndone, but there were some warnings; set '-warnings true' to view them\n");
-            else
-                Console.WriteLine("\ndone\n");
-            return 0;
+            return (
+                resultCode: 0,
+                load_type,
+                loadBmpFileName,
+                loadLevFileName,
+                save_type,
+                saveBmpFileName,
+                saveLevFileName,
+                playerXY,
+                flowerXY,
+                applesXY.ToArray(),
+                numFlowers,
+                transformMatrix,
+                printProgressOn,
+                printWarningsOn
+            );   
         }
 
         private static (int resultCode, VectRast) LoadAndTransform(IOType load_type, 
