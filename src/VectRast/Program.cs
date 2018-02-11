@@ -124,10 +124,11 @@ namespace VectRast
             }
             #endregion
 
-            (var resultCode, var vr) = LoadAndTransform(load_type, loadBmpFileName, loadLevFileName, transformMatrix, printProgressOn, printWarningsOn);
+            (var resultCode, var vr) = LoadAndTransform(load_type, loadBmpFileName, loadLevFileName, transformMatrix, 
+                                                numFlowers, playerXY, flowerXY, applesXY.ToArray(), printProgressOn, printWarningsOn);
             if (resultCode > 0)
                 return resultCode;
-            
+
             resultCode = Save(vr, save_type, saveBmpFileName, saveLevFileName);
             if (resultCode > 0)
                 return resultCode;
@@ -143,6 +144,10 @@ namespace VectRast
                                         string loadBmpFileName,
                                         string loadLevFileName,
                                         Matrix2D transformMatrix,
+                                        int numFlowers,
+                                        (int x, int y)? playerXY,
+                                        (int x, int y)? flowerXY,
+                                        (int x, int y)[] applesXY,
                                         bool printProgressOn, bool printWarningsOn)
         {
             VectRast vr = new VectRast(printProgressOn, printWarningsOn);
@@ -153,7 +158,10 @@ namespace VectRast
                 try
                 {
                     Console.Write("\nloading in bitmap {0}", loadBmpFileName);
-                    vr.LoadAsBmp(loadBmpFileName, out bmp, out pixelOn, Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]), load_type == IOType.LevelBitmap ? (byte)0 : (byte)1, numFlowers, playerXY, flowerXY, applesXY.ToArray());
+                    vr.LoadAsBmp(loadBmpFileName, out bmp, out pixelOn, 
+                            Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]), 
+                            load_type == IOType.LevelBitmap ? (byte)0 : (byte)1, 
+                            numFlowers, playerXY, flowerXY, applesXY);
                 }
                 catch (Exception e)
                 {
