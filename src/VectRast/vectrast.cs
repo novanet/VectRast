@@ -28,7 +28,7 @@ namespace VectRast
             objects = new ArrayList();
         }
 
-        protected SortedList createVectors(byte[,] pixelOn, SKBitmap bmp)
+        public SortedList CreateVectors(byte[,] pixelOn, SKBitmap bmp)
         {
             SortedList vectors = new SortedList(bmp.Width * bmp.Height / 32);
             Hashtable vectorsReverse = new Hashtable(bmp.Width * bmp.Height / 32);
@@ -36,7 +36,7 @@ namespace VectRast
             for (int j = 0; j < bmp.Height + 1; j++)
                 for (int i = 0; i < bmp.Width + 1; i++)
                 {
-                    printProgress(ref steps, 400000);
+                    PrintProgress(ref steps, 400000);
                     int type =
                         (pixelOn[i, j] & 1) +
                         ((pixelOn[i + 1, j] & 1) << 1) +
@@ -48,13 +48,13 @@ namespace VectRast
                         pixelOn[i + 1, j] |= 1;
                         pixelOn[i, j + 1] |= 1;
                         pixelOn[i + 1, j + 1] |= 1;
-                        printWarning("\nillegal pixel configuration at [" + i + ", " + j + "]");
+                        PrintWarning("\nillegal pixel configuration at [" + i + ", " + j + "]");
                     }
                 }
             for (int j = 0; j < bmp.Height; j++)
                 for (int i = 0; i < bmp.Width; i++)
                 {
-                    printProgress(ref steps, 800000);
+                    PrintProgress(ref steps, 800000);
                     if ((pixelOn[i + 1, j + 1] & 1) == 1)
                     {
                         int type1 =
@@ -67,14 +67,14 @@ namespace VectRast
                         { // get rid of illegal situations
                             pixelOn[i + 2, j + 1] |= 1;
                             pixelOn[i + 1, j + 2] |= 1;
-                            printWarning("\nillegal pixel configuration at [" + i + ", " + j + "]");
+                            PrintWarning("\nillegal pixel configuration at [" + i + ", " + j + "]");
                         }
                     }
                 }
             for (int j = -1; j < bmp.Height; j++)
                 for (int i = -1; i < bmp.Width; i++)
                 {
-                    printProgress(ref steps, 400000);
+                    PrintProgress(ref steps, 400000);
                     int type =
                         (pixelOn[i + 1, j + 1] & 1) +
                         ((pixelOn[i + 2, j + 1] & 1) << 1) +
@@ -171,7 +171,8 @@ namespace VectRast
                 }
             return vectors;
         }
-        protected void collapseVectors(SortedList vectors)
+
+        public void CollapseVectors(SortedList vectors)
         {
             ArrayList vertices;
             int steps = 0;
@@ -186,7 +187,7 @@ namespace VectRast
                 vertices = new ArrayList(1000);
                 do
                 {
-                    printProgress(ref steps, 2000);
+                    PrintProgress(ref steps, 2000);
                     vectorNow = (VectorPixel)vectors[vectorOld.toPnt];
                     vectorNew = (VectorPixel)vectors[vectorNow.toPnt];
                     if (!vectorNow.fromPnt.Equals(startPnt) && !vectorNow.toPnt.Equals(startPnt) && vectorNow.linkVector() && line.sameDir(vectorNow) && !vectorNew.linkVector() && line.sameDir(vectorNew))
@@ -262,7 +263,7 @@ namespace VectRast
             }
         }
 
-        protected void transformVectors(Matrix2D matrix)
+        public void TransformVectors(Matrix2D matrix)
         {
             Random randGen = new Random();
             for (int j = 0; j < polygons.Count; j++)
@@ -289,10 +290,10 @@ namespace VectRast
                 objectNow.y = vertexNew.y;
                 objects.Insert(i, objectNow);
             }
-            getMinMax();
+            GetMinMax();
         }
 
-        protected void saveAsLev(String fileName, String levelName, String LGRName, String groundName, String skyName)
+        public void SaveAsLev(String fileName, String levelName, String LGRName, String groundName, String skyName)
         {
             if (polygons.Count == 0)
                 throw new Exception("there must be at least one polygon!");
@@ -420,7 +421,7 @@ namespace VectRast
             levWriter.Close();
         }
 
-        protected void loadAsLev(String fileName)
+        public void LoadAsLev(String fileName)
         {
             BinaryReader levReader = new BinaryReader((Stream)File.OpenRead(fileName));
             levReader.BaseStream.Seek(130, SeekOrigin.Begin);
@@ -452,10 +453,10 @@ namespace VectRast
             levReader.Close();
             if (polygons.Count == 0)
                 throw new Exception("there must be at least one polygon!");
-            getMinMax();
+            GetMinMax();
         }
 
-        protected void loadAsBmp(String fileName, out SKBitmap bmp, out byte[,] pixelOn, double zoom, byte merging, int numFlowers, (int x, int y)? playerXY, (int x, int y)? flowerXY, (int x, int y)[] applesXY)
+        public void LoadAsBmp(String fileName, out SKBitmap bmp, out byte[,] pixelOn, double zoom, byte merging, int numFlowers, (int x, int y)? playerXY, (int x, int y)? flowerXY, (int x, int y)[] applesXY)
         {
             bmp = SKBitmap.FromImage(SKImage.FromEncodedData(SKData.Create(fileName)));
             pixelOn = new byte[bmp.Width + 2, bmp.Height + 2];
@@ -463,7 +464,7 @@ namespace VectRast
             for (int j = -1; j <= bmp.Height; j++)
                 for (int i = -1; i <= bmp.Width; i++)
                 {
-                    printProgress(ref steps, 200000);
+                    PrintProgress(ref steps, 200000);
                     if (j < 0 || j >= bmp.Height || i < 0 || i >= bmp.Width)
                         pixelOn[i + 1, j + 1] = merging;
                     else
@@ -575,7 +576,7 @@ namespace VectRast
         //     bmp.Save(fileName);
         // }
 
-        void getMinMax()
+        private void GetMinMax()
         {
             xmin = Int32.MaxValue;
             xmax = Int32.MinValue;
@@ -603,7 +604,7 @@ namespace VectRast
             }
         }
 
-        void printProgress(ref int steps, int max)
+        private void PrintProgress(ref int steps, int max)
         {
             if (printProgressOn)
                 if (steps-- == 0)
@@ -612,231 +613,13 @@ namespace VectRast
                     Console.Write(".");
                 }
         }
-        void printWarning(string warning)
+        private void PrintWarning(string warning)
         {
             someWarning = true;
             if (printWarningsOn)
-            {
+            { 
                 Console.WriteLine(warning);
             }
-        }
-        static Int32 Main(string[] args)
-        {
-            #region init defaults
-            const double ONEPIXEL = 1.0 / 47.0;
-            bool printProgressOn = true;
-            bool printWarningsOn = false;
-            IOType load_type = IOType.None;
-            IOType save_type = IOType.None;
-            String loadLevFileName = null;
-            String saveLevFileName = null;
-            String loadBmpFileName = null;
-            String saveBmpFileName = null;
-            (int x, int y)? playerXY = null;
-            (int x, int y)? flowerXY = null;
-            List<(int x, int y)> applesXY = new List<(int x, int y)>();
-            int numFlowers = 1;
-            Matrix2D transformMatrix = Matrix2D.identityM();
-            #endregion
-            #region arguments parse
-            int arg_num = 0;
-            try
-            {
-                while (arg_num < args.Length)
-                {
-                    String arg_now = args[arg_num++];
-                    switch (arg_now)
-                    {
-                        case "-loadbmp":
-                            // initialize from bitmap
-                            load_type = IOType.Bitmap;
-                            loadBmpFileName = args[arg_num++];
-                            break;
-                        case "-loadlev":
-                            // initialize from level
-                            load_type = IOType.Level;
-                            loadLevFileName = args[arg_num++];
-                            break;
-                        case "-savebmp":
-                            // save to bitmap
-                            save_type = IOType.Bitmap;
-                            saveBmpFileName = args[arg_num++];
-                            break;
-                        case "-savelev":
-                            // save to level
-                            save_type = IOType.Level;
-                            saveLevFileName = args[arg_num++];
-                            break;
-                        case "-loadlevbmp":
-                            load_type = IOType.LevelBitmap;
-                            loadLevFileName = args[arg_num++];
-                            loadBmpFileName = args[arg_num++];
-                            break;
-                        case "-translate":
-                            // offset by tx, ty
-                            double tx = Double.Parse(args[arg_num++]);
-                            double ty = Double.Parse(args[arg_num++]);
-                            transformMatrix = transformMatrix * Matrix2D.translationM(tx, ty);
-                            break;
-                        case "-rotate":
-                            // rotate by angle (in degrees)
-                            double ang = Double.Parse(args[arg_num++]);
-                            transformMatrix = transformMatrix * Matrix2D.rotationM(ang);
-                            break;
-                        case "-scale":
-                            // scale by factor sx, sy
-                            double sx = Double.Parse(args[arg_num++]) * ONEPIXEL;
-                            double sy = Double.Parse(args[arg_num++]) * ONEPIXEL;
-                            transformMatrix = transformMatrix * Matrix2D.scaleM(sx, sy);
-                            break;
-                        case "-flowers":
-                            // number of flowers
-                            numFlowers = Int32.Parse(args[arg_num++]);
-                            break;
-                        case "-progress":
-                            // show progress continually
-                            printProgressOn = Boolean.Parse(args[arg_num++]);
-                            break;
-                        case "-warnings":
-                            // print warnings
-                            printWarningsOn = Boolean.Parse(args[arg_num++]);
-                            break;
-                        case "-playerXY":
-                            var playerX = int.Parse(args[arg_num++]);
-                            var playerY = int.Parse(args[arg_num++]);
-                            playerXY = (playerX, playerY);
-                            break;
-                        case "-flowerXY":
-                            var flowerX = int.Parse(args[arg_num++]);
-                            var flowerY = int.Parse(args[arg_num++]);
-                            flowerXY = (flowerX, flowerY);
-                            break;
-                        case "-appleXY":
-                            var appleX = int.Parse(args[arg_num++]);
-                            var appleY = int.Parse(args[arg_num++]);
-                            applesXY.Add((appleX, appleY));
-                            break;
-                        default:
-                            throw new Exception("unknown parameter '" + arg_now + "'");
-                    }
-                }
-            }
-            catch (IndexOutOfRangeException)
-            {
-                Console.WriteLine("\nexpected value(s) after the switch");
-                return 7;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\nerror parsing command line: " + e.Message);
-                return 8;
-            }
-            if (load_type == IOType.LevelBitmap && save_type == IOType.Bitmap)
-            {
-                Console.WriteLine("savebmp not allowed after loadlevbmp");
-                return 3;
-            }
-            #endregion
-            #region load and transform
-            VectRast vr = new VectRast(printProgressOn, printWarningsOn);
-            if (load_type == IOType.Bitmap || load_type == IOType.LevelBitmap)
-            {
-                byte[,] pixelOn;
-                SKBitmap bmp;
-                try
-                {
-                    Console.Write("\nloading in bitmap {0}", loadBmpFileName);
-                    vr.loadAsBmp(loadBmpFileName, out bmp, out pixelOn, Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]), load_type == IOType.LevelBitmap ? (byte)0 : (byte)1, numFlowers, playerXY, flowerXY, applesXY.ToArray());
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("\nerror loading bitmap {0}: " + e.Message, loadBmpFileName);
-                    return 1;
-                }
-                try
-                {
-                    Console.Write("\ncreating polygons");
-                    vr.collapseVectors(vr.createVectors(pixelOn, bmp));
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("\nerror vectorizing the bitmap: " + e.Message);
-                    return 2;
-                }
-                transformMatrix = Matrix2D.translationM(-bmp.Width / 2.0, -bmp.Height / 2.0) * transformMatrix;
-                bmp.Dispose();
-            }
-            if (load_type == IOType.LevelBitmap)
-                try
-                {
-                    Console.Write("\ntransforming vectors");
-                    vr.transformVectors(transformMatrix);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("\nerror transforming vectors: " + e.Message);
-                    return 4;
-                }
-            if (load_type == IOType.Level || load_type == IOType.LevelBitmap)
-                try
-                {
-                    Console.Write("\nloading in level {0}", loadLevFileName);
-                    vr.loadAsLev(loadLevFileName);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("\nerror loading level {0}: " + e.Message, loadLevFileName);
-                    return 5;
-                }
-            if (load_type != IOType.LevelBitmap)
-                try
-                {
-                    Console.Write("\ntransforming vectors");
-                    vr.transformVectors(transformMatrix);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("\nerror transforming vectors: " + e.Message);
-                    return 6;
-                }
-            #endregion
-            #region save
-            switch (save_type)
-            {
-                case IOType.None:
-                    break;
-                case IOType.Bitmap:
-                    try
-                    {
-                        Console.Write("\nsaving bitmap {0}", saveBmpFileName);
-                        throw new NotImplementedException("Saving Bitmap has been disabled.");
-                        //vr.saveAsBmp(saveBmpFileName);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("\nerror saving bitmap {0}: " + e.Message, saveBmpFileName);
-                        return 5;
-                    }
-                //break;
-                case IOType.Level:
-                    try
-                    {
-                        Console.Write("\nsaving level {0}", saveLevFileName);
-                        vr.saveAsLev(saveLevFileName, "autogenerated on " + DateTime.Now.ToString("g"), "DEFAULT", "ground", "sky");
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("\nerror saving level {0}: " + e.Message, saveLevFileName);
-                        return 6;
-                    }
-                    break;
-            }
-            if (vr.someWarning)
-                Console.WriteLine("\ndone, but there were some warnings; set '-warnings true' to view them\n");
-            else
-                Console.WriteLine("\ndone\n");
-            return 0;
-            #endregion
         }
     }
 }
