@@ -123,7 +123,28 @@ namespace VectRast
                 return 3;
             }
             #endregion
-            #region load and transform
+
+            (var resultCode, var vr) = LoadAndTransform(load_type, loadBmpFileName, loadLevFileName, transformMatrix, printProgressOn, printWarningsOn);
+            if (resultCode > 0)
+                return resultCode;
+            
+            resultCode = Save(vr, save_type, saveBmpFileName, saveLevFileName);
+            if (resultCode > 0)
+                return resultCode;
+            
+            if (vr.someWarning)
+                Console.WriteLine("\ndone, but there were some warnings; set '-warnings true' to view them\n");
+            else
+                Console.WriteLine("\ndone\n");
+            return 0;
+        }
+
+        private static (int resultCode, VectRast) LoadAndTransform(IOType load_type, 
+                                        string loadBmpFileName,
+                                        string loadLevFileName,
+                                        Matrix2D transformMatrix,
+                                        bool printProgressOn, bool printWarningsOn)
+        {
             VectRast vr = new VectRast(printProgressOn, printWarningsOn);
             if (load_type == IOType.Bitmap || load_type == IOType.LevelBitmap)
             {
@@ -137,7 +158,7 @@ namespace VectRast
                 catch (Exception e)
                 {
                     Console.WriteLine("\nerror loading bitmap {0}: " + e.Message, loadBmpFileName);
-                    return 1;
+                    return (1, null);
                 }
                 try
                 {
@@ -147,7 +168,7 @@ namespace VectRast
                 catch (Exception e)
                 {
                     Console.WriteLine("\nerror vectorizing the bitmap: " + e.Message);
-                    return 2;
+                    return (2, null);
                 }
                 transformMatrix = Matrix2D.translationM(-bmp.Width / 2.0, -bmp.Height / 2.0) * transformMatrix;
                 bmp.Dispose();
@@ -161,7 +182,7 @@ namespace VectRast
                 catch (Exception e)
                 {
                     Console.WriteLine("\nerror transforming vectors: " + e.Message);
-                    return 4;
+                    return (4, null);
                 }
             if (load_type == IOType.Level || load_type == IOType.LevelBitmap)
                 try
@@ -172,7 +193,7 @@ namespace VectRast
                 catch (Exception e)
                 {
                     Console.WriteLine("\nerror loading level {0}: " + e.Message, loadLevFileName);
-                    return 5;
+                    return (5, null);
                 }
             if (load_type != IOType.LevelBitmap)
                 try
@@ -183,18 +204,9 @@ namespace VectRast
                 catch (Exception e)
                 {
                     Console.WriteLine("\nerror transforming vectors: " + e.Message);
-                    return 6;
+                    return (6, null);
                 }
-            #endregion
-            var result = Save(vr, save_type, saveBmpFileName, saveLevFileName);
-            if (result > 0)
-                return result;
-            
-            if (vr.someWarning)
-                Console.WriteLine("\ndone, but there were some warnings; set '-warnings true' to view them\n");
-            else
-                Console.WriteLine("\ndone\n");
-            return 0;
+            return (0, vr);
         }
 
         private static int Save(VectRast vr, IOType save_type, string saveBmpFileName, string saveLevFileName)
