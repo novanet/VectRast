@@ -56,6 +56,9 @@ Recognized parameters are:
 * **other parameters**
   * `-warnings true/false` : print warnings (default `false`)
   * `-flowers number` : number of flowers in the created level (effective only with `-loadbmp`); default is `1`
+  * `-flowerXY x y` : will ignore the `-flowers` arg, and instead set the specific x y coordinates for a single flower
+  * `-appleXY x y` : will set the x y coordinates for a single apple, can be called multiple times to add more apples
+  * `-playerXY x y` : will set the x y coordinates for the player start
 
 You can use the transformations one on top of another; for example you can rotate by 30 degrees, then displace 10 pixels to the left, then rotate again and then stretch x axis to 2 and mirror y axis to -1.
 
