@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using SkiaSharp;
+using VectRast.Models;
 using VectRast.Models.Elma;
+using VectRast.Models.Numerics;
 
 namespace VectRast
 {

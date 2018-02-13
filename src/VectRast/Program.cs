@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using SkiaSharp;
+using VectRast.Models;
+using VectRast.Models.Numerics;
 
 namespace VectRast
 {
@@ -21,12 +23,12 @@ namespace VectRast
             var numFlowers,
             var transformMatrix,
             var printProgressOn,
-            var printWarningsOn) = 
+            var printWarningsOn) =
                 ParseArguments(args);
             if (resultCode > 0)
                 return resultCode;
 
-            (var loadResultCode, var vr) = LoadAndTransform(load_type, loadBmpFileName, loadLevFileName, transformMatrix, 
+            (var loadResultCode, var vr) = LoadAndTransform(load_type, loadBmpFileName, loadLevFileName, transformMatrix,
                                                 numFlowers, playerXY, flowerXY, applesXY, printProgressOn, printWarningsOn);
             if (loadResultCode > 0)
                 return loadResultCode;
@@ -34,7 +36,7 @@ namespace VectRast
             resultCode = Save(vr, save_type, saveBmpFileName, saveLevFileName);
             if (resultCode > 0)
                 return resultCode;
-            
+
             if (vr.someWarning)
                 Console.WriteLine("\ndone, but there were some warnings; set '-warnings true' to view them\n");
             else
@@ -42,7 +44,7 @@ namespace VectRast
             return 0;
         }
 
-        private static 
+        private static
         (
             int resultCode,
             IOType load_type,
@@ -172,7 +174,7 @@ namespace VectRast
             {
                 Console.WriteLine("savebmp not allowed after loadlevbmp");
                 return (3, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false);
-            }   
+            }
 
             return (
                 resultCode: 0,
@@ -189,10 +191,10 @@ namespace VectRast
                 transformMatrix,
                 printProgressOn,
                 printWarningsOn
-            );   
+            );
         }
 
-        private static (int resultCode, VectRast) LoadAndTransform(IOType load_type, 
+        private static (int resultCode, VectRast) LoadAndTransform(IOType load_type,
                                         string loadBmpFileName,
                                         string loadLevFileName,
                                         Matrix2D transformMatrix,
@@ -210,9 +212,9 @@ namespace VectRast
                 try
                 {
                     Console.Write("\nloading in bitmap {0}", loadBmpFileName);
-                    vr.LoadAsBmp(loadBmpFileName, out bmp, out pixelOn, 
-                            Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]), 
-                            load_type == IOType.LevelBitmap ? (byte)0 : (byte)1, 
+                    vr.LoadAsBmp(loadBmpFileName, out bmp, out pixelOn,
+                            Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]),
+                            load_type == IOType.LevelBitmap ? (byte)0 : (byte)1,
                             numFlowers, playerXY, flowerXY, applesXY);
                 }
                 catch (Exception e)
