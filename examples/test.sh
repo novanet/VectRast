@@ -1,0 +1,1 @@
+dotnet run --project ../src/VectRast/VectRast.csproj -- -loadbmp test.png -scale 1 1 -savelev test.lev -playerXY 3729 128 -appleXY 3729 128 -appleXY 2941 463 -appleXY 1673 829 -flowerXY 703 1081 -warnings true

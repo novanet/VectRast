@@ -33,4 +33,5 @@ msbuild.wrn
 
 # Generated files
 examples/outlev.lev
+examples/test.lev
 examples/log.txt
