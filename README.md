@@ -43,22 +43,24 @@ The tool operates through command line arguments (YEAH!)
 
 Recognized parameters are:
 
-* **IO parameters**
-  * `-loadbmp filename` : specify bitmap to load from; white color means empty space, anything else is ground
-  * `-loadlev filename` : specify level to load from
-  * `-loadlevbmp level bitmap` : specify level to load from and bitmap to include in the level; transformations are only done over the bitmap<br>
-  * `-savelev filename` : specify level file to save to
-  * ~~`-savebmp filename` : specify bitmap file to save to~~ (Currently not supported in .NET Core version)
-* **transformation parameters**
-  * `-translate x y` : displace all polygons
-  * `-rotate x` : rotate around the center (in degrees)
-  * `-scale x y` : scale x and y axis resp; the values can be interpreted as 'how many pixels on the screen is going to be one pixel in the bitmap'. Negative quantity results in mirroring around the respective axis.
-* **other parameters**
-  * `-warnings true/false` : print warnings (default `false`)
-  * `-flowers number` : number of flowers in the created level (effective only with `-loadbmp`); default is `1`
-  * `-flowerXY x y` : will ignore the `-flowers` arg, and instead set the specific x y coordinates for a single flower
-  * `-appleXY x y` : will set the x y coordinates for a single apple, can be called multiple times to add more apples
-  * `-playerXY x y` : will set the x y coordinates for the player start
+- **IO parameters**
+  - `-loadbmp filename` : specify bitmap to load from; white color means empty space, anything else is ground
+  - `-loadlev filename` : specify level to load from
+  - `-loadlevbmp level bitmap` : specify level to load from and bitmap to include in the level; transformations are only done over the bitmap<br>
+  - `-savelev filename` : specify level file to save to
+  - ~~`-savebmp filename` : specify bitmap file to save to~~ (Currently not supported in .NET Core version)
+- **transformation parameters**
+  - `-translate x y` : displace all polygons
+  - `-rotate x` : rotate around the center (in degrees)
+  - `-scale x y` : scale x and y axis resp; the values can be interpreted as 'how many pixels on the screen is going to be one pixel in the bitmap'. Negative quantity results in mirroring around the respective axis.
+- **other parameters**
+  - `-warnings true/false` : print warnings (default `false`)
+  - `-flowers number` : number of flowers in the created level (effective only with `-loadbmp`); default is `1`
+  - `-flowerXY x y` : will ignore the `-flowers` arg, and instead set the specific x y coordinates for a single flower
+  - `-appleXY x y` : will set the x y coordinates for a single apple, can be called multiple times to add more apples
+  - `-playerXY x y` : will set the x y coordinates for the player start
+  - `-colorCoords` : will enable the use of colors for generating game objects. This means you will not have to set coordinates through args. See [the example image](./examples/colorCoords/test.png) for reference. A collection of red pixels (#FF0000) is apples, green (#00FF00) is the start, and blue (#0000FF) is the flower.
+  - `-config config.txt` : enables you to specify all the above args inside a `.txt` config file. Seperate args by new lines. See [the example file](./examples/colorCoords/config_map.txt) for reference.
 
 You can use the transformations one on top of another; for example you can rotate by 30 degrees, then displace 10 pixels to the left, then rotate again and then stretch x axis to 2 and mirror y axis to -1.
 
