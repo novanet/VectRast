@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using SkiaSharp;
 using VectRast.Models;
 using VectRast.Models.Numerics;
@@ -10,6 +12,15 @@ namespace VectRast
     {
         public static int Main(string[] args)
         {
+            var configFileNameIndex = Array.IndexOf(args, "-config");
+            if (configFileNameIndex >= 0)
+            {
+                var configFileValues = GetConfigFileValues(args[configFileNameIndex + 1]);
+                var list = args.ToList();
+                list.AddRange(configFileValues);
+                args = list.ToArray();
+            }
+
             (var resultCode,
             var load_type,
             var loadBmpFileName,
@@ -23,13 +34,15 @@ namespace VectRast
             var numFlowers,
             var transformMatrix,
             var printProgressOn,
-            var printWarningsOn) =
+            var printWarningsOn,
+            var configFileName,
+            var colorCoords) =
                 ParseArguments(args);
             if (resultCode > 0)
                 return resultCode;
 
             (var loadResultCode, var vr) = LoadAndTransform(load_type, loadBmpFileName, loadLevFileName, transformMatrix,
-                                                numFlowers, playerXY, flowerXY, applesXY, printProgressOn, printWarningsOn);
+                                                numFlowers, playerXY, flowerXY, applesXY, printProgressOn, printWarningsOn, colorCoords);
             if (loadResultCode > 0)
                 return loadResultCode;
 
@@ -55,11 +68,13 @@ namespace VectRast
             string saveLevFileName,
             (int x, int y)? playerXY,
             (int x, int y)? flowerXY,
-            (int x, int y)[] applesXY,
+            List<(int x, int y)> applesXY,
             int numFlowers,
             Matrix2D transformMatrix,
             bool printProgressOn,
-            bool printWarningsOn
+            bool printWarningsOn,
+            string configFileName,
+            bool colorCoords
             )
             ParseArguments(string[] args)
         {
@@ -77,6 +92,8 @@ namespace VectRast
             var applesXY = new List<(int x, int y)>();
             int numFlowers = 1;
             Matrix2D transformMatrix = Matrix2D.identityM();
+            String configFileName = null;
+            bool colorCoords = false;
 
             int arg_num = 0;
             try
@@ -155,6 +172,12 @@ namespace VectRast
                             var appleY = int.Parse(args[arg_num++]);
                             applesXY.Add((appleX, appleY));
                             break;
+                        case "-config":
+                            configFileName = args[arg_num++];
+                            break;
+                        case "-colorCoords":
+                            colorCoords = true;
+                            break;
                         default:
                             throw new Exception("unknown parameter '" + arg_now + "'");
                     }
@@ -163,17 +186,17 @@ namespace VectRast
             catch (IndexOutOfRangeException)
             {
                 Console.WriteLine("\nexpected value(s) after the switch");
-                return (7, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false);
+                return (7, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false, null, false);
             }
             catch (Exception e)
             {
                 Console.WriteLine("\nerror parsing command line: " + e.Message);
-                return (8, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false);
+                return (8, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false, null, false);
             }
             if (load_type == IOType.LevelBitmap && save_type == IOType.Bitmap)
             {
                 Console.WriteLine("savebmp not allowed after loadlevbmp");
-                return (3, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false);
+                return (3, IOType.None, "", "", IOType.None, "", "", null, null, null, 0, null, false, false, null, false);
             }
 
             return (
@@ -186,11 +209,13 @@ namespace VectRast
                 saveLevFileName,
                 playerXY,
                 flowerXY,
-                applesXY.ToArray(),
+                applesXY,
                 numFlowers,
                 transformMatrix,
                 printProgressOn,
-                printWarningsOn
+                printWarningsOn,
+                configFileName,
+                colorCoords
             );
         }
 
@@ -201,8 +226,9 @@ namespace VectRast
                                         int numFlowers,
                                         (int x, int y)? playerXY,
                                         (int x, int y)? flowerXY,
-                                        (int x, int y)[] applesXY,
-                                        bool printProgressOn, bool printWarningsOn)
+                                        List<(int x, int y)> applesXY,
+                                        bool printProgressOn, bool printWarningsOn,
+                                        bool colorCoords)
         {
             VectRast vr = new VectRast(printProgressOn, printWarningsOn);
             if (load_type == IOType.Bitmap || load_type == IOType.LevelBitmap)
@@ -215,7 +241,7 @@ namespace VectRast
                     vr.LoadAsBmp(loadBmpFileName, out bmp, out pixelOn,
                             Math.Abs(transformMatrix.elements[0, 0]) + Math.Abs(transformMatrix.elements[1, 1]),
                             load_type == IOType.LevelBitmap ? (byte)0 : (byte)1,
-                            numFlowers, playerXY, flowerXY, applesXY);
+                            numFlowers, playerXY, flowerXY, applesXY.ToArray(), colorCoords);
                 }
                 catch (Exception e)
                 {
@@ -305,6 +331,11 @@ namespace VectRast
             }
 
             return 0;
+        }
+
+        private static string[] GetConfigFileValues(string configFileName)
+        {
+            return File.ReadAllLines(configFileName).SelectMany(s => $"-{s}".Split(" ", StringSplitOptions.RemoveEmptyEntries)).ToArray();
         }
     }
 }
