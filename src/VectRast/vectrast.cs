@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using SkiaSharp;
 using VectRast.Models;
 using VectRast.Models.Elma;
@@ -9,7 +10,7 @@ using VectRast.Models.Numerics;
 
 namespace VectRast
 {
-    class VectRast
+    public class VectRast
     {
         ArrayList polygons;
         ArrayList objects;
@@ -458,11 +459,14 @@ namespace VectRast
             GetMinMax();
         }
 
-        public void LoadAsBmp(String fileName, out SKBitmap bmp, out byte[,] pixelOn, double zoom, byte merging, int numFlowers, (int x, int y)? playerXY, (int x, int y)? flowerXY, (int x, int y)[] applesXY)
+        public void LoadAsBmp(String fileName, out SKBitmap bmp, out byte[,] pixelOn, double zoom, byte merging, int numFlowers, (int x, int y)? playerXY, (int x, int y)? flowerXY, (int x, int y)[] applesXY, bool colorCoords)
         {
             bmp = SKBitmap.FromImage(SKImage.FromEncodedData(SKData.Create(fileName)));
             pixelOn = new byte[bmp.Width + 2, bmp.Height + 2];
             int steps = 0;
+            List<(int x, int y)> redPixels = new List<(int, int)>();
+            List<(int x, int y)> bluePixels = new List<(int, int)>();
+            List<(int x, int y)> greenPixels = new List<(int, int)>();
             for (int j = -1; j <= bmp.Height; j++)
                 for (int i = -1; i <= bmp.Width; i++)
                 {
@@ -472,12 +476,70 @@ namespace VectRast
                     else
                     {
                         SKColor col = bmp.GetPixel(i, j);
-                        if (col.Red < 250 || col.Green < 250 || col.Blue < 250)
+                        if (col.Red > 240 && col.Green < 100 && col.Blue < 100)
+                        {
+                            redPixels.Add((i, j));
+                        }
+                        else if (col.Red < 100 && col.Green < 100 && col.Blue > 240)
+                        {
+                            bluePixels.Add((i, j));
+                        }
+                        else if (col.Red < 100 && col.Green > 240 && col.Blue < 100)
+                        {
+                            greenPixels.Add((i, j));
+                        }
+                        else if (col.Red < 250 || col.Green < 250 || col.Blue < 250)
                         {
                             pixelOn[i + 1, j + 1] = 1;
                         }
                     }
                 }
+
+            double distance(int x1, int y1, int x2, int y2)
+            {
+                return Math.Sqrt(Math.Pow((x2 - x1), 2) + Math.Pow(y2 - y1, 2));
+            }
+
+            List<(int x, int y)> getCoords(List<(int x, int y)> pixels)
+            {
+                var coords = new List<(int x, int y)>();
+
+                if (pixels.Count > 0)
+                {
+                    var current = pixels;
+                    while (current.Any())
+                    {
+                        var pixel = current[0];
+                        var x1 = pixel.x;
+                        var y1 = pixel.y;
+                        current = current.Where(p => distance(x1, y1, p.x, p.y) > 150).ToList();
+                        coords.Add(pixel);
+                    }
+                }
+
+                return coords;
+            }
+
+            if (colorCoords)
+            {
+                var appleCoords = getCoords(redPixels);
+                if (appleCoords.Any())
+                {
+                    applesXY = appleCoords.ToArray();
+                }
+
+                var flowerCoords = getCoords(bluePixels);
+                if (flowerCoords.Any())
+                {
+                    flowerXY = flowerCoords[0];
+                }
+
+                var playerCoords = getCoords(greenPixels);
+                if (playerCoords.Any())
+                {
+                    playerXY = playerCoords[0];
+                }
+            }
             objects = new ArrayList();
             if (!flowerXY.HasValue)
             {
@@ -619,7 +681,7 @@ namespace VectRast
         {
             someWarning = true;
             if (printWarningsOn)
-            { 
+            {
                 Console.WriteLine(warning);
             }
         }
